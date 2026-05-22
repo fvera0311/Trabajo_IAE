@@ -1,0 +1,3 @@
+r-base
+r-cran-tidyverse
+r-cran-gridextra
