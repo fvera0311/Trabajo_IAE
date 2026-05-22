@@ -137,7 +137,7 @@ def main():
             ["Mortalidad", "Edad", "Correlación", "Comorbilidades"])
         
         if viz_type == "Mortalidad":
-            # Filtro interactivo por edad
+            # 1. Filtro por edad
             st.markdown("### 🔍 Filtrar por Rango de Edad")
             age_range_viz = st.slider(
                 "Selecciona rango de edad:", 
@@ -145,21 +145,28 @@ def main():
                 key="viz_age_range"
             )
             age_min_viz, age_max_viz = age_range_viz
-            
-            # Filtra datos según rango seleccionado
-            df_filtered = df[(df['age'] >= age_min_viz) & (df['age'] <= age_max_viz)]
-            
-            # Muestra del rango
+            st.markdown("### 🩺 Perfil")
+            c1, c2, c3, c4, c5 = st.columns(5)
+            filtro_diabetes = c1.checkbox("Diabético", value=False, key="chk_diab")
+            filtro_anemia = c2.checkbox("Anemia", value=False, key="chk_anem")
+            filtro_hipertension = c3.checkbox("Hipertensión", value=False, key="chk_hiper")
+            filtro_fumador = c4.checkbox("Fumador", value=False, key="chk_fum")
+            filtro_fallecido = c5.checkbox("Fallecido", value=False, key="chk_fall")
+            df_filtered = df[
+                (df['age'] >= age_min_viz) & (df['age'] <= age_max_viz) &
+                (df['diabetes'] == int(filtro_diabetes)) &
+                (df['anaemia'] == int(filtro_anemia)) &
+                (df['high_blood_pressure'] == int(filtro_hipertension)) &
+                (df['smoking'] == int(filtro_fumador)) &
+                (df['DEATH_EVENT'] == int(filtro_fallecido))
+            ]
             col1, col2, col3 = st.columns(3)
             col1.metric("Pacientes en rango", len(df_filtered))
             col2.metric("Fallecidos", df_filtered['DEATH_EVENT'].sum())
             col3.metric("Tasa Mortalidad", f"{(df_filtered['DEATH_EVENT'].mean()*100):.1f}%")
-            
-            # Gráfico con datos filtrados
             visualizer_filtered = DataVisualizer(df_filtered)
             fig = visualizer_filtered.plot_target_distribution()
             st.pyplot(fig)
-            
             # Mensaje informativo
             if len(df_filtered) < 20:
                 st.warning("⚠️ Pocos pacientes en este rango. Los gráficos pueden no ser representativos.")
