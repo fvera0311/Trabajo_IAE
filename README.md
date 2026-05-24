@@ -15,8 +15,8 @@ La estructura del proyecto es la siguiente:
 📁 Trabajo_IA/
 │
 ├── 📄 main.py                  Interfaz gráfica y flujo principal de Streamlit
-├── 📄 pyproject.toml           Configuración del proyecto y dependencias modernas
-├── 📄 uv.lock                  Bloqueo de versiones exactas para reproducibilidad
+├── 📄 requirements.txt         Dependencias de Python
+├── 📄 packages.txt             Dependencias de R
 ├── 📄 README.md                Este manual
 │
 ├── 📁 data/
@@ -46,9 +46,9 @@ Con estos prerrequisitos cumplidos, desde la carpeta principal del proyecto:
 
 **Crear el entorno**: uv venv
 
-**Instalar las dependencias**: uv sync
-
 **Activar el entorno**: .venv/Scripts/activate
+
+**Instalar las dependencias**: uv pip install -r requirements.txt
 
 **Ejecutar la aplicación**: streamlit run main.py
 
@@ -56,7 +56,7 @@ Datos extra:
 
 Si se observa el archivo de datos se observarán 300 filas, mientras que en la app solo se hace mención a 299 pacientes, esta fila "perdida" corresponde a la cabecera de los datos, ningún paciente ha sido eliminado ni ha habido ninguna observación incompleta.
 
-Para garantizar la reproductividad, se ha utilizado la semilla random_state= 42.
+Para garantizar la reproductividad, se han congelado todos los modelos a una semilla fija, de esta forma todo aquel que replique el entorno obtendrá los mismos resultados y conclusiones.
 
 Al tratar con 299 pacientes, el deep learning no cuenta con suficientes datos para ser eficaz, quedándose atrás con respecto a modelos de árbol.
 
