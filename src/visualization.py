@@ -1,6 +1,5 @@
 """
 Módulo de visualización con matplotlib y seaborn
-Cubre el requisito 6: Visualización
 """
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -11,50 +10,45 @@ import numpy as np
 class DataVisualizer:
     """Clase para crear visualizaciones exploratorias y explicativas"""
     
+    # Diccionario de traducción (una sola vez, usado en todos los métodos)
+    NOMBRES_ESPANOL = {
+        'age': 'Edad',
+        'anaemia': 'Anemia',
+        'creatinine_phosphokinase': 'CPK',
+        'diabetes': 'Diabetes',
+        'ejection_fraction': 'Frac. Eyección',
+        'high_blood_pressure': 'Hipertensión',
+        'platelets': 'Plaquetas',
+        'serum_creatinine': 'Creatinina',
+        'serum_sodium': 'Sodio',
+        'sex': 'Sexo',
+        'smoking': 'Fumador',
+        'time' : 'Observación (días)',
+        'DEATH_EVENT': 'Fallecimiento'
+    }
+    
     def __init__(self, df: pd.DataFrame):
         self.df = df
         sns.set_theme(style="whitegrid", palette="muted")
         plt.rcParams['figure.figsize'] = (12, 8)
         
     def plot_target_distribution(self):
-        import matplotlib.pyplot as plt
-        import seaborn as sns
-
-        # Creamos una figura con 1 fila y 2 columnas (Subgráficos lado a lado)
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        """Distribución de la variable objetivo"""
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
         
-        # Aseguramos el orden de los datos: 0 antes que 1
-        counts = self.df['DEATH_EVENT'].value_counts().sort_index()
+        death_counts = self.df['DEATH_EVENT'].value_counts()
+        axes[0].bar(['Sobrevivió', 'Falleció'], death_counts.values, 
+                    color=['#2ecc71', '#e74c3c'], alpha=0.7, edgecolor='black')
+        axes[0].set_ylabel('Número de Pacientes')
+        axes[0].set_title('Distribución de Mortalidad', fontweight='bold')
+        axes[0].grid(axis='y', alpha=0.3)
         
-        # Definición estricta de nombres y colores
-        nombres_completos = {0: 'Sobrevivió', 1: 'Falleció'}
-        colores_estrictos = {0: '#2ecc71', 1: '#e74c3c'}
+        axes[1].pie(death_counts.values, labels=['Sobrevivió', 'Falleció'],
+                   autopct='%1.1f%%', colors=['#2ecc71', '#e74c3c'],
+                   startangle=90)
+        axes[1].set_title('Proporción de Mortalidad', fontweight='bold')
         
-        etiquetas = [nombres_completos[idx] for idx in counts.index]
-        colores = [colores_estrictos[idx] for idx in counts.index]
-        
-        # ---------------- SUBGRÁFICO 1: GRÁFICO DE BARRAS ----------------
-        sns.barplot(x=etiquetas, y=counts.values, palette=colores, ax=ax1)
-        
-        # Añadir los números encima de las barras
-        for i, v in enumerate(counts.values):
-            ax1.text(i, v + (v * 0.02), str(v), ha='center', fontweight='bold', size=10)
-            
-        ax1.set_title("Número de Pacientes", pad=15, fontweight='bold', size=11)
-        ax1.set_ylabel("Pacientes")
-        sns.despine(ax=ax1)
-        
-        # ---------------- SUBGRÁFICO 2: GRÁFICO DE SECTORES (TARTA) ----------------
-        # El autopct='%1.1f%%' calcula y pinta el porcentaje automáticamente en base a tus datos filtrados
-        ax2.pie(counts.values, labels=etiquetas, autopct='%1.1f%%', startangle=90, 
-                colors=colores, wedgeprops={'edgecolor': 'white', 'linewidth': 2},
-                textprops={'fontweight': 'bold'})
-        
-        ax2.set_title("Proporción de Mortalidad", pad=15, fontweight='bold', size=11)
-        
-        # Ajustamos el espaciado para que no se amontonen las letras
         plt.tight_layout()
-        
         return fig
     
     def plot_age_distribution(self):
@@ -72,11 +66,11 @@ class DataVisualizer:
         axes[0].set_title('Distribución de Edad', fontweight='bold')
         axes[0].legend()
         
-        # FIX: Convertir DEATH_EVENT a string para el boxplot
+        # Boxplot con nombres en español
         df_temp = self.df.copy()
-        df_temp['DEATH_EVENT_STR'] = df_temp['DEATH_EVENT'].map({0: 'Sobrevivió', 1: 'Falleció'})
+        df_temp['Estado'] = df_temp['DEATH_EVENT'].map({0: 'Sobrevivió', 1: 'Falleció'})
         
-        sns.boxplot(data=df_temp, x='DEATH_EVENT_STR', y='age', ax=axes[1],
+        sns.boxplot(data=df_temp, x='Estado', y='age', ax=axes[1],
                    palette={'Sobrevivió': '#2ecc71', 'Falleció': '#e74c3c'})
         axes[1].set_xlabel('Estado Vital')
         axes[1].set_ylabel('Edad (años)')
@@ -92,8 +86,15 @@ class DataVisualizer:
         numeric_cols = self.df.select_dtypes(include=[np.number]).columns
         corr_matrix = self.df[numeric_cols].corr()
         
+        # Traducir nombres SOLO para visualización
+        corr_matrix = corr_matrix.rename(
+            columns=self.NOMBRES_ESPANOL, 
+            index=self.NOMBRES_ESPANOL
+        )
+        
         sns.heatmap(corr_matrix, annot=True, fmt='.2f', cmap='RdYlGn_r',
-                   center=0, square=True, linewidths=1, ax=ax)
+                   center=0, square=True, linewidths=1, ax=ax,
+                   cbar_kws={'label': 'Correlación'})
         
         ax.set_title('Matriz de Correlación', fontweight='bold', pad=20)
         plt.tight_layout()
@@ -121,7 +122,7 @@ class DataVisualizer:
             
             ax.set_xlabel(label)
             ax.set_ylabel('Frecuencia')
-            ax.set_title(f'Distribución de {label}', fontsize=12)
+            ax.set_title(f'Distribución de {label.split("(")[0].strip()}', fontsize=12, fontweight='bold')
             ax.legend()
         
         plt.tight_layout()
