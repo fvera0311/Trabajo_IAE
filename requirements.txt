@@ -4,6 +4,7 @@ numpy
 matplotlib
 seaborn
 scikit-learn
-tensorflow
+tensorflow-cpu
 imbalanced-learn
 dask
+plotly
