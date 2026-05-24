@@ -4,6 +4,8 @@ Cubre el requisito 7: Modelización + Elemento avanzado: Deep Learning
 """
 import numpy as np
 import pandas as pd
+import os
+import random
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -30,6 +32,8 @@ class HeartFailureModels:
     
     def __init__(self, random_state=42):
         self.random_state = random_state
+        self._set_seeds(self.random_state) # Llamamos al bloqueador de semillas
+        
         self.models = {}
         self.scaler = StandardScaler()
         self.X_train = None
@@ -39,6 +43,14 @@ class HeartFailureModels:
         self.X_train_scaled = None
         self.X_test_scaled = None
         self.results = {}
+        
+    def _set_seeds(self, seed):
+        """Congela todas las fuentes de aleatoriedad para el Deep Learning"""
+        os.environ['PYTHONHASHSEED'] = str(seed)
+        os.environ['TF_DETERMINISTIC_OPS'] = '1'  # Fuerza a TF a ser determinista
+        random.seed(seed)
+        np.random.seed(seed)
+        tf.random.set_seed(seed)
         
     def prepare_data(self, X, y, test_size=0.2, use_smote=True):
         """Prepara datos para entrenamiento"""
@@ -279,3 +291,4 @@ class HeartFailureModels:
             'probability': proba,
             'risk_level': 'Alto Riesgo' if proba > 0.7 else 'Riesgo Moderado' if proba > 0.4 else 'Bajo Riesgo'
         }
+
