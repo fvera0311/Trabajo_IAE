@@ -22,6 +22,8 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, callbacks
 
+import time
+
 
 class HeartFailureModels:
     """Clase para entrenar y evaluar modelos de predicción"""
@@ -57,7 +59,9 @@ class HeartFailureModels:
     
     def train_random_forest(self, n_estimators=100, max_depth=10):
         """Entrena Random Forest"""
-        print("\n🌲 Entrenando Random Forest...")
+        print("\n Entrenando Random Forest...")
+        
+        start_time = time.time() 
         
         rf = RandomForestClassifier(
             n_estimators=n_estimators,
@@ -67,6 +71,9 @@ class HeartFailureModels:
         )
         
         rf.fit(self.X_train_scaled, self.y_train)
+        
+        training_time = time.time() - start_time 
+        
         self.models['Random Forest'] = rf
         
         y_pred = rf.predict(self.X_test_scaled)
@@ -74,29 +81,38 @@ class HeartFailureModels:
         
         self.results['Random Forest'] = self._evaluate_model(y_pred, y_pred_proba, 'Random Forest')
         self.results['Random Forest']['feature_importance'] = rf.feature_importances_
+        self.results['Random Forest']['training_time'] = training_time 
         
-        print(f"✅ Random Forest - Accuracy: {self.results['Random Forest']['accuracy']:.4f}")
+        print(f"Random Forest - Accuracy: {self.results['Random Forest']['accuracy']:.4f} - Tiempo: {training_time:.2f}s")  
         return rf
     
     def train_logistic_regression(self, C=1.0):
         """Entrena Logistic Regression"""
-        print("\n📈 Entrenando Logistic Regression...")
+        print("\n Entrenando Logistic Regression...")
+        
+        start_time = time.time() 
         
         lr = LogisticRegression(C=C, random_state=self.random_state, max_iter=1000)
         lr.fit(self.X_train_scaled, self.y_train)
+        
+        training_time = time.time() - start_time  
+        
         self.models['Logistic Regression'] = lr
         
         y_pred = lr.predict(self.X_test_scaled)
         y_pred_proba = lr.predict_proba(self.X_test_scaled)[:, 1]
         
         self.results['Logistic Regression'] = self._evaluate_model(y_pred, y_pred_proba, 'Logistic Regression')
+        self.results['Logistic Regression']['training_time'] = training_time 
         
-        print(f"✅ Logistic Regression - Accuracy: {self.results['Logistic Regression']['accuracy']:.4f}")
+        print(f"Logistic Regression - Accuracy: {self.results['Logistic Regression']['accuracy']:.4f} - Tiempo: {training_time:.2f}s")  # MODIFICAR
         return lr
     
     def train_gradient_boosting(self, n_estimators=100, learning_rate=0.1):
         """Entrena Gradient Boosting"""
-        print("\n🚀 Entrenando Gradient Boosting...")
+        print("\n Entrenando Gradient Boosting...")
+        
+        start_time = time.time() 
         
         gb = GradientBoostingClassifier(
             n_estimators=n_estimators,
@@ -105,33 +121,43 @@ class HeartFailureModels:
         )
         
         gb.fit(self.X_train_scaled, self.y_train)
+        
+        training_time = time.time() - start_time  
+        
         self.models['Gradient Boosting'] = gb
         
         y_pred = gb.predict(self.X_test_scaled)
         y_pred_proba = gb.predict_proba(self.X_test_scaled)[:, 1]
         
         self.results['Gradient Boosting'] = self._evaluate_model(y_pred, y_pred_proba, 'Gradient Boosting')
+        self.results['Gradient Boosting']['training_time'] = training_time  # AÑADIR
         
-        print(f"✅ Gradient Boosting - Accuracy: {self.results['Gradient Boosting']['accuracy']:.4f}")
+        print(f"Gradient Boosting - Accuracy: {self.results['Gradient Boosting']['accuracy']:.4f} - Tiempo: {training_time:.2f}s")  # MODIFICAR
         return gb
     
     def train_svm(self, C=1.0, kernel='rbf'):
         """Entrena Support Vector Machine"""
-        print("\n🎯 Entrenando SVM...")
+        print("\n Entrenando SVM...")
+        
+        start_time = time.time() 
         
         svm = SVC(C=C, kernel=kernel, probability=True, random_state=self.random_state)
         svm.fit(self.X_train_scaled, self.y_train)
+        
+        training_time = time.time() - start_time 
+        
         self.models['SVM'] = svm
         
         y_pred = svm.predict(self.X_test_scaled)
         y_pred_proba = svm.predict_proba(self.X_test_scaled)[:, 1]
         
         self.results['SVM'] = self._evaluate_model(y_pred, y_pred_proba, 'SVM')
+        self.results['SVM']['training_time'] = training_time 
         
-        print(f"✅ SVM - Accuracy: {self.results['SVM']['accuracy']:.4f}")
+        print(f" SVM - Accuracy: {self.results['SVM']['accuracy']:.4f} - Tiempo: {training_time:.2f}s")  # MODIFICAR
         return svm
     
-    # ============ DEEP LEARNING ============
+    # DEEP LEARNING
     
     def build_neural_network(self, input_dim, layers_config=[64, 32, 16]):
         """Construye red neuronal para Deep Learning"""
@@ -167,26 +193,26 @@ class HeartFailureModels:
     
     def train_deep_learning(self, epochs=100, batch_size=16, validation_split=0.2):
         """Entrena modelo de Deep Learning"""
-        print("\n🧠 Entrenando Red Neuronal (Deep Learning)...")
+        print("\n Entrenando Red Neuronal...")
+        
+        start_time = time.time()
         
         input_dim = self.X_train_scaled.shape[1]
         model = self.build_neural_network(input_dim)
-        
         early_stopping = callbacks.EarlyStopping(
-            monitor='val_loss', patience=15, restore_best_weights=True, verbose=0
-        )
-        
-        reduce_lr = callbacks.ReduceLROnPlateau(
-            monitor='val_loss', factor=0.5, patience=5, min_lr=0.00001, verbose=0
+            monitor='val_loss', patience=10, restore_best_weights=True
         )
         
         history = model.fit(
             self.X_train_scaled, self.y_train,
-            epochs=epochs, batch_size=batch_size,
+            epochs=epochs,
+            batch_size=batch_size,
             validation_split=validation_split,
-            callbacks=[early_stopping, reduce_lr],
+            callbacks=[early_stopping],
             verbose=0
         )
+        
+        training_time = time.time() - start_time
         
         self.models['Deep Learning'] = model
         
@@ -195,8 +221,9 @@ class HeartFailureModels:
         
         self.results['Deep Learning'] = self._evaluate_model(y_pred, y_pred_proba, 'Deep Learning')
         self.results['Deep Learning']['history'] = history.history
+        self.results['Deep Learning']['training_time'] = training_time
         
-        print(f"✅ Deep Learning - Accuracy: {self.results['Deep Learning']['accuracy']:.4f}")
+        print(f" Deep Learning - Accuracy: {self.results['Deep Learning']['accuracy']:.4f} - Tiempo: {training_time:.2f}s")
         return model, history
     
     def _evaluate_model(self, y_pred, y_pred_proba, model_name):
