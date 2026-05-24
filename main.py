@@ -147,11 +147,21 @@ def main():
                      f"{df['high_blood_pressure'].sum()} ({df['high_blood_pressure'].mean()*100:.1f}%)")
     
     elif page == "🔬 Procesamiento Dask":
-        st.markdown("## Procesamiento con Dask")
+        st.markdown("## Demostración de Procesamiento en Paralelo con Dask")
         
-        st.markdown("### Filtro de edad")
+        traducciones_dask = {
+            'age': 'Edad', 'anaemia': 'Anemia', 'creatinine_phosphokinase': 'CPK',
+            'diabetes': 'Diabetes', 'ejection_fraction': 'Fracción Eyección (%)',
+            'high_blood_pressure': 'Hipertensión', 'platelets': 'Plaquetas',
+            'serum_creatinine': 'Creatinina', 'serum_sodium': 'Sodio',
+            'sex': 'Sexo', 'smoking': 'Fumador', 'time': 'Observación (días)',
+            'DEATH_EVENT': 'Fallecimiento', 'age_category': 'Categoría Edad',
+            'ejection_risk': 'Riesgo Eyección'
+        }
+
+        st.markdown("### Filtrado")
         
-        age_range = st.slider("Rango de edad:", 40, 95, (40, 95))
+        age_range = st.slider("Filtro de edad:", 40, 95, (40, 95))
         age_min, age_max = age_range
 
         st.markdown("**Filtrar por condiciones:**")
@@ -165,6 +175,7 @@ def main():
             hypertension_filter = st.checkbox("Sólo hipertensos")
         with col4:
             smoking_filter = st.checkbox("Sólo fumadores")
+
         conditions = {'age': lambda x: (x >= age_min) & (x <= age_max)}
         
         if anaemia_filter:
@@ -175,28 +186,32 @@ def main():
             conditions['high_blood_pressure'] = lambda x: x == 1
         if smoking_filter:
             conditions['smoking'] = lambda x: x == 1
+            
         filtered = processor.filter_data(conditions)
         active_filters = sum([anaemia_filter, diabetes_filter, hypertension_filter, smoking_filter])
-        if active_filters > 0:
-            st.info(f"🔍 {active_filters} filtro(s) activo(s)")
         
-        st.write(f"**Filtrados:** {len(filtered)} registros")
-        st.dataframe(filtered, use_container_width=True)
+        if active_filters > 0:
+            st.info(f"🔍 {active_filters} filtro(s) de comorbilidad activo(s)")
+        
+        st.write(f"**Pacientes encontrados:** {len(filtered)} registros")
+        
+        st.dataframe(filtered.rename(columns=traducciones_dask), use_container_width=True)
+        
+        st.markdown("---")
         
         st.markdown("### Agregación")
         aggs = processor.aggregate_data()
-        st.dataframe(aggs['por_muerte'], use_container_width=True)
+        df_aggs = aggs['por_muerte'].reset_index().rename(columns=traducciones_dask)
+        st.dataframe(df_aggs, use_container_width=True)
         
-        st.markdown("### Mapeo")
+        st.markdown("###  Mapeo")
         mapped = processor.map_transformations()
         
         col1, col2 = st.columns(2)
         
         with col1:
             st.write("**📌 Transformación 1: Categorías de Edad**")
-            st.dataframe(mapped[['age', 'age_category']].head(10))
-            
-            # Distribución de categorías
+            st.dataframe(mapped[['age', 'age_category']].head(10).rename(columns=traducciones_dask))
             age_dist = mapped['age_category'].value_counts()
             st.write("**Distribución:**")
             st.write(f"- Anciano: {age_dist.get('Anciano', 0)} pacientes")
@@ -205,9 +220,7 @@ def main():
         
         with col2:
             st.write("**📌 Transformación 2: Riesgo por Eyección**")
-            st.dataframe(mapped[['ejection_fraction', 'ejection_risk']].head(10))
-            
-            # Distribución de riesgo
+            st.dataframe(mapped[['ejection_fraction', 'ejection_risk']].head(10).rename(columns=traducciones_dask))
             risk_dist = mapped['ejection_risk'].value_counts()
             st.write("**Distribución:**")
             st.write(f"- Alto Riesgo: {risk_dist.get('Alto Riesgo', 0)} pacientes")
@@ -216,7 +229,7 @@ def main():
         
         st.markdown("### Ordenación")
         sorted_df, _ = processor.sort_data(['DEATH_EVENT', 'age'], ascending=False)
-        st.dataframe(sorted_df, use_container_width=True)
+        st.dataframe(sorted_df.rename(columns=traducciones_dask), use_container_width=True)
     
     elif page == "📊 Visualizaciones":
         st.markdown("## Visualizaciones Python")
