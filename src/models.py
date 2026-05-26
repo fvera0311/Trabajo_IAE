@@ -1,7 +1,3 @@
-"""
-Módulo de modelización con ML tradicional y Deep Learning
-Cubre el requisito 7: Modelización + Elemento avanzado: Deep Learning
-"""
 import numpy as np
 import pandas as pd
 import os
