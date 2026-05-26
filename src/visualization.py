@@ -1,6 +1,3 @@
-"""
-Módulo de visualización con matplotlib y seaborn
-"""
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
