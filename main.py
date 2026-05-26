@@ -1,7 +1,3 @@
-"""
-Aplicación Streamlit - Predicción de Mortalidad por Insuficiencia Cardíaca
-Requisito 8: Comunicación
-"""
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -73,10 +69,9 @@ def main():
         
         st.markdown("---")
         
-        # Crear tabla bonita con nombres en español
+        # tabla con nombres en español
         st.markdown("### Muestra de Pacientes del Estudio")
         
-        # Traducir columnas al español
         df_display = df.head(10).copy()
         df_display = df_display.rename(columns={
             'age': 'Edad',
@@ -413,7 +408,7 @@ def main():
         
         st.markdown("---")
         
-        # BOTÓN PARA COMPARAR TIEMPOS
+        # Boton de tiempos
         if st.button("⏱️ Comparar Tiempos de Entrenamiento", type="primary"):
             st.markdown("### ⚡ Velocidad de Entrenamiento")
             
