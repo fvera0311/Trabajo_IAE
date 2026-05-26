@@ -1,7 +1,3 @@
-"""
-Módulo de procesamiento de datos con Dask
-Cubre los requisitos 1-5: Importación, Filtrado, Agregación, Mapeo, Ordenación
-"""
 import dask.dataframe as dd
 import pandas as pd
 import numpy as np
@@ -9,14 +5,13 @@ from pathlib import Path
 
 
 class DataProcessor:
-    """Procesador de datos con Dask para escalabilidad"""
+
     
     def __init__(self, data_path: str):
         self.data_path = Path(data_path)
         self.ddf = None
         self.df = None
         
-    # REQUISITO 1: IMPORTACIÓN
     def load_data(self, use_dask: bool = True):
         """Carga datos usando Dask o Pandas"""
         if use_dask:
@@ -29,7 +24,7 @@ class DataProcessor:
         print(f"✅ Datos cargados: {len(self.df)} registros, {len(self.df.columns)} columnas")
         return self.df
     
-    # REQUISITO 2: FILTRADO
+# Filtro
     def filter_data(self, conditions: dict = None):
         """Filtra datos según condiciones especificadas"""
         if conditions is None:
@@ -47,12 +42,12 @@ class DataProcessor:
         print(f"✅ Filtrado aplicado: {len(filtered_df)} registros")
         return filtered_df
     
-    # REQUISITO 3: AGREGACIÓN
+# estadisticas por variables
     def aggregate_data(self):
         """Realiza agregaciones estadísticas sobre los datos"""
         aggregations = {}
         
-        # Agregación por evento de muerte
+
         death_agg = self.df.groupby('DEATH_EVENT').agg({
             'age': ['mean', 'std', 'min', 'max'],
             'ejection_fraction': ['mean', 'std'],
@@ -61,7 +56,7 @@ class DataProcessor:
         }).round(2)
         aggregations['por_muerte'] = death_agg
         
-        # Agregación por diabetes
+
         diabetes_agg = self.df.groupby('diabetes').agg({
             'age': 'mean',
             'DEATH_EVENT': 'sum',
@@ -69,7 +64,7 @@ class DataProcessor:
         }).round(2)
         aggregations['por_diabetes'] = diabetes_agg
         
-        # Agregación por género
+   
         gender_agg = self.df.groupby('sex').agg({
             'age': 'mean',
             'DEATH_EVENT': ['sum', 'mean'],
@@ -80,12 +75,12 @@ class DataProcessor:
         print(f"✅ Agregaciones completadas: {len(aggregations)} grupos")
         return aggregations
     
-    # REQUISITO 4: MAPEO
+    # Juntar valores
     def map_transformations(self):
         """Aplica funciones de transformación elemento a elemento"""
         df_mapped = self.df.copy()
         
-        # Mapeo 1: Categorizar edad
+        # Mapeo 1: Por edad
         def categorize_age(age):
             if age < 50:
                 return 'Joven'
@@ -96,7 +91,7 @@ class DataProcessor:
         
         df_mapped['age_category'] = df_mapped['age'].apply(categorize_age)
         
-        # Mapeo 2: Crear categoría de riesgo según fracción de eyección
+        # Mapeo 2: Según fracción de eyección
         def ejection_risk(ef):
             if ef < 30:
                 return 'Alto Riesgo'
@@ -107,7 +102,6 @@ class DataProcessor:
         
         df_mapped['ejection_risk'] = df_mapped['ejection_fraction'].apply(ejection_risk)
         
-        # Mapeo 3: Normalización min-max de variables continuas
         continuous_vars = ['age', 'creatinine_phosphokinase', 'ejection_fraction', 
                           'serum_creatinine', 'serum_sodium', 'platelets']
         
@@ -116,7 +110,7 @@ class DataProcessor:
             max_val = df_mapped[var].max()
             df_mapped[f'{var}_normalized'] = (df_mapped[var] - min_val) / (max_val - min_val)
         
-        # Mapeo 4: Crear score de comorbilidad
+
         df_mapped['comorbidity_score'] = (
             df_mapped['anaemia'] + 
             df_mapped['diabetes'] + 
@@ -127,7 +121,7 @@ class DataProcessor:
         print(f"✅ Transformaciones completadas")
         return df_mapped
     
-    # REQUISITO 5: ORDENACIÓN
+
     def sort_data(self, criteria: list = None, ascending: bool = False):
         """Ordena datos según múltiples criterios"""
         if criteria is None:
