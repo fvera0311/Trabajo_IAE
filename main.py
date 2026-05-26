@@ -51,7 +51,7 @@ def main():
     st.sidebar.title("📊 Navegación")
     page = st.sidebar.radio(
         "Selecciona:",
-        ["🏠 Inicio", "🔬 Procesamiento Dask", "📊 Visualizaciones", 
+        ["🏠 Inicio", "🔬 Tratamiento", "📊 Visualizaciones", 
          "🤖 Modelos ML", "🧠 Deep Learning", "📉 Comparación", "🎯 Predictor"]
     )
     
@@ -141,8 +141,8 @@ def main():
             st.metric("Pacientes Hipertensos", 
                      f"{df['high_blood_pressure'].sum()} ({df['high_blood_pressure'].mean()*100:.1f}%)")
     
-    elif page == "🔬 Procesamiento Dask":
-        st.markdown("## Demostración de Procesamiento en Paralelo con Dask")
+    elif page == "🔬 Tratamiento":
+        st.markdown("## Manipulación de datos")
         
         traducciones_dask = {
             'age': 'Edad', 'anaemia': 'Anemia', 'creatinine_phosphokinase': 'CPK',
@@ -257,7 +257,7 @@ def main():
             
             fig = visualizer_filtered.plot_target_distribution()
             st.pyplot(fig)
-            
+            # Dar margen de error si n es pequeña
             if len(df_filtered) < 20:
                 st.warning("⚠️ Pocos pacientes en este rango. Los gráficos pueden no ser representativos.")
         elif viz_type == "Edad":
