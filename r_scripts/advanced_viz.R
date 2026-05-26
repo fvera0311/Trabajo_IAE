@@ -1,5 +1,3 @@
-# Script R para visualizaciones avanzadas con ggplot2
-# advanced_viz.R - Visualizaciones interactivas con plotly
 library(tidyverse)
 library(gridExtra)
 
